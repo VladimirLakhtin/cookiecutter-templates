@@ -1,0 +1,9 @@
+{
+  "service_name": "example_service",
+  "prefix": "example",
+  "app_name": "{{ cookiecutter.prefix }}_app",
+  "description": "Сервис Пример",
+  "python_version": "3.11",
+  "add_postgresql": ["yes", "no"],
+  "add_redis": ["yes", "no"]
+}
