@@ -1,0 +1,102 @@
+services:
+  {{ cookiecutter.prefix }}-backend:
+    container_name: {{ cookiecutter.prefix }}_backend
+    build:
+      context: ./
+      args:
+        HTTP_PROXY: ${HTTP_PROXY}
+        HTTPS_PROXY: ${HTTPS_PROXY}
+        NO_PROXY: ${NO_PROXY}
+    ports:
+      - "8001:${{ '{' }}{{ cookiecutter.prefix.upper() }}__RUN__PORT}"
+    environment:
+      RUN_HOST: ${{ '{' }}{{ cookiecutter.prefix.upper() }}__RUN__HOST}
+      RUN_PORT: ${{ '{' }}{{ cookiecutter.prefix.upper() }}__RUN__PORT}
+    {%- if cookiecutter.add_redis == "yes" or cookiecutter.add_postgresql == "yes" %}
+    depends_on:
+      {%- if cookiecutter.add_redis == "yes" %}
+      {{ cookiecutter.prefix }}-redis:
+        condition: service_healthy
+      {%- endif %}
+      {%- if cookiecutter.add_postgresql == "yes" %}
+      {{ cookiecutter.prefix }}-db:
+        condition: service_healthy
+      {%- endif %}
+    {%- endif %}
+    volumes:
+      - ./{{ cookiecutter.app_name }}:/{{ cookiecutter.service_name }}/{{ cookiecutter.app_name }}
+      - ./.env:/{{ cookiecutter.service_name }}/.env
+    networks:
+      - main_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${{ '{' }}{{ cookiecutter.prefix.upper() }}__RUN__PORT}/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+  {%- if cookiecutter.add_redis == "yes" %}
+
+  {{ cookiecutter.prefix }}-redis:
+    container_name: {{ cookiecutter.prefix }}_redis
+    image: docker.io/redis:alpine
+    restart: always
+    ports:
+      - "${{ '{' }}{{ cookiecutter.prefix.upper() }}__REDIS__PORT}:${{ '{' }}{{ cookiecutter.prefix.upper() }}__REDIS__PORT}"
+    environment:
+      REDIS_PASSWORD: ${{ cookiecutter.prefix.upper() }}__REDIS__PASSWORD
+      REDIS_PORT: ${{ cookiecutter.prefix.upper() }}__REDIS__PORT
+    volumes:
+      - {{ cookiecutter.prefix }}-redis-data:/data
+    command: /bin/sh -c "redis-server --requirepass ${{ cookiecutter.prefix.upper() }}__REDIS__PASSWORD"
+    networks:
+      - main_network
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 30s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+  {%- endif %}
+  {%- if cookiecutter.add_postgresql == "yes" %}
+
+  {{ cookiecutter.prefix }}-db:
+   container_name: {{ cookiecutter.prefix }}_db
+   image: docker.io/postgres:16-alpine
+   environment:
+     LANG: ru_RU:UTF-8
+     TZ: 'Europe/Moscow'
+     DB_HOST: ${{ '{' }}{{ cookiecutter.prefix.upper() }}__DB__HOST}
+     POSTGRES_DB: ${{ '{' }}{{ cookiecutter.prefix.upper() }}__DB__DATABASE}
+     POSTGRES_USER: ${{ '{' }}{{ cookiecutter.prefix.upper() }}__DB__USER}
+     POSTGRES_PASSWORD: ${{ '{' }}{{ cookiecutter.prefix.upper() }}__DB__PASSWORD}
+     PGDATA: /var/lib/postgresql/data
+   ports:
+     - "5433:${{ '{' }}{{ cookiecutter.prefix.upper() }}__DB__PORT}"
+   volumes:
+     - {{ cookiecutter.prefix }}-db-data:/var/lib/postgresql/data
+   restart: unless-stopped
+   stdin_open: true
+   tty: true
+   networks:
+     - main_network
+   healthcheck:
+     test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
+     interval: 30s
+     timeout: 5s
+     retries: 5
+     start_period: 5s
+  {%- endif %}
+{%- if cookiecutter.add_redis == "yes" or cookiecutter.add_postgresql == "yes" %}
+
+volumes:
+  {%- if cookiecutter.add_redis == "yes" %}
+  {{ cookiecutter.prefix }}-redis-data:
+  {%- endif %}
+  {%- if cookiecutter.add_postgresql == "yes" %}
+  {{ cookiecutter.prefix }}-db-data:
+  {%- endif %}
+{%- endif %}
+
+networks:
+  main_network:
+    driver: bridge

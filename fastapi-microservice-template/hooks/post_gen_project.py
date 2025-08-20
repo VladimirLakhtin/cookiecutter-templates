@@ -31,11 +31,12 @@ class DependenciesCreator:
                 [project]
                 name = "{{ cookiecutter.service_name }}"
                 version = "0.1.0"
-                description = "Authenticate service"
+                description = "{{ cookiecutter.description }}"
                 requires-python = ">=3.11"
                 dependencies = [
                     "fastapi>=0.114.0,<1.0.0",
                     "uvicorn>=0.30.6,<1.0.0",
+                    "dishka>=1.6.0,<2.0.0",
                     "pydantic-settings>=2.5.0,<3.0.0",
                     "pydantic[email]>=2.11.7,<3.0.0",
                     {deps}
@@ -45,6 +46,7 @@ class DependenciesCreator:
                 dev = [
                     "pytest>=8.3.5,<9.0.0",
                     "pytest-asyncio>=0.26.0,<1.0.0",
+                    "pytest-mock>=3.14.1,<4.0.0",
                 ]
             """
         )
@@ -124,6 +126,8 @@ class LibsConfig:
         "modules": [
             Config.app_path / "infrastructure" / "config" / "db_config.py",
             Config.app_path / "infrastructure" / "database",
+            Config.app_path / "infrastructure" / "health" / "postgres.py",
+            Config.app_path / "utils",
         ],
         "dependencies": {
             "sqlalchemy": ">=2.0.41",
@@ -134,6 +138,7 @@ class LibsConfig:
     redis = {
         "modules": [
             Config.app_path / "infrastructure" / "config" / "redis_config.py",
+            Config.app_path / "infrastructure" / "health" / "redis.py",
         ],
         "dependencies": {
             "redis": ">=6.2.0,<7.0.0",
@@ -141,12 +146,11 @@ class LibsConfig:
     }
     httpx = {
         "modules": [
-            Config.app_path / "models" / "dto" / "http_dto.py",
-            Config.app_path / "bases" / "http_connection_proxy.py",
-            Config.app_path / "bases" / "repositories" / "http_repository.py",
-            Config.app_path / "tools" / "di_containers" / "http_integration_di_container.py",
+            Config.app_path / "infrastructure" / "http",
         ],
-        "dependencies": {"httpx": ">=0.28.1,<1.0.0"},
+        "dependencies": {
+            "httpx": ">=0.28.1,<1.0.0",
+        },
     }
     # TODO: Дополнять в процессе добавления библиотек
 
@@ -171,7 +175,9 @@ def resolve_libs() -> None:
     """Удалить лишние модули"""
 
     libs_to_add = {
-        "postgres": "{{cookiecutter.add_postgresql}}" == "True",
+        "postgres": "{{cookiecutter.add_postgresql}}" == "yes",
+        "redis": "{{cookiecutter.add_redis}}" == "yes",
+        "httpx": "{{cookiecutter.add_httpx}}" == "yes",
         # TODO: Дополнять в процессе добавления библиотек
     }
 

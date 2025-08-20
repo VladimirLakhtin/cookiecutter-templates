@@ -26,8 +26,8 @@ WORKDIR /{{ cookiecutter.service_name }}
 
 RUN uv venv
 
-COPY pyproject.toml auth_app .env ./
+COPY pyproject.toml {{ cookiecutter.app_name }} .env ./
 
-RUN uv sync --package {{ cookiecutter.service_name }} --active
+RUN uv sync --active
 
 CMD sh -c 'uvicorn {{ cookiecutter.app_name }}.main:app --host ${RUN_HOST} --port ${RUN_PORT} --reload'

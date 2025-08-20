@@ -13,9 +13,7 @@ from {{ cookiecutter.app_name }}.infrastructure.config.run_config import RunConf
 
 
 class ServiceConfig(BaseSettings):
-    """Конфигурация сервиса дерева документов.
-
-    Наследует базовые настройки сервиса и добавляет специфичные для дерева документов.
+    """Основная конфигурация параметров.
 
     Attributes:
         log (LoggingConfig): Конфигурация логирования.
@@ -42,10 +40,3 @@ class ServiceConfig(BaseSettings):
         env_nested_delimiter="__",
         extra="ignore",
     )
-
-
-# Экземпляр конфигурации сервиса
-settings = ServiceConfig(
-    _env_prefix="{{ cookiecutter.prefix.upper() }}__",
-    _env_file=Path(__file__).parents[4] / ".env",
-)

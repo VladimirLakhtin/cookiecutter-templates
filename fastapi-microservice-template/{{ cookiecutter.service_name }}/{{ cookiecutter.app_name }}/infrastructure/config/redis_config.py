@@ -5,7 +5,7 @@ from pydantic import BaseModel, computed_field
 class RedisConfig(BaseModel):
     """Конфигурация подключения к Redis."""
     host: str = "redis"
-    port: str = "6379"
+    port: int = 6379
     timeout: int = 30
     password: str = "super_password"
 
