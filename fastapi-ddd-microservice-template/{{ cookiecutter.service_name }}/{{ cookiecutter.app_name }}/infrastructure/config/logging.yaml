@@ -1,0 +1,59 @@
+logging:
+  format: "%(asctime)s | %(levelname)-8s | %(name)s | %(funcName)s:%(lineno)d | %(message)s"
+
+  handlers:
+    console:
+      class: logging.StreamHandler
+
+    file_app:
+      class: logging.FileHandler
+      filename: logs/app.log
+
+    file_private:
+      class: logging.FileHandler
+      filename: logs/private.log
+
+    file_uvicorn_access:
+      class: logging.FileHandler
+      filename: logs/uvicorn_access.log
+    {%- if cookiecutter.add_postgresql == "yes" %}
+
+    file_sqlalchemy:
+      class: logging.FileHandler
+      filename: logs/sqlalchemy.log
+    {%- endif %}
+    {%- if cookiecutter.add_redis == "yes" %}
+
+    file_redis:
+      class: logging.FileHandler
+      filename: logs/redis.log
+    {%- endif %}
+
+  loggers:
+    root:
+      handlers: [console, file_app]
+      propagate: false
+
+    uvicorn.error:
+      handlers: [console, file_app]
+      propagate: false
+
+    uvicorn.access:
+      handlers: [console, file_uvicorn_access]
+      propagate: false
+
+    fastapi:
+      handlers: [console, file_app]
+      propagate: false
+    {%- if cookiecutter.add_postgresql == "yes" %}
+
+    sqlalchemy:
+      handlers: [console, file_sqlalchemy]
+      propagate: false
+    {%- endif %}
+    {%- if cookiecutter.add_redis == "yes" %}
+
+    redis:
+      handlers: [console, file_redis]
+      propagate: false
+    {%- endif %}
